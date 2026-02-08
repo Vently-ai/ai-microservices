@@ -33,7 +33,6 @@ class UserDiaryWorkflow:
         user_status: str,
         user_diary_summary_1: str,
     ) -> str:
-
         # Wait for diary
         await workflow.wait_condition(lambda: self._user_diary is not None)
         user_diary = self._user_diary
@@ -41,42 +40,42 @@ class UserDiaryWorkflow:
         # Step 1: Diary summary (sequential)
         user_diary_summary_0 = await workflow.execute_activity(
             diary_summary_agent,
-            # arguments for the agent
-            user_diary,
-            session_id,
-            
-            start_to_close_timeout=timedelta(seconds=30),
+            args=[
+                user_diary,
+                session_id
+            ],
+            start_to_close_timeout=timedelta(seconds=120),
         )
 
         # Step 2: Parallel agents
         weekly_task = workflow.execute_activity(
             past_week_diary_summary_agent,
-            # arguments for the agent
-            user_diary_summary_0,
-            user_diary_summary_1
-            session_id,
-            
-            start_to_close_timeout=timedelta(seconds=60),
+            args=[
+                user_diary_summary_0,
+                user_diary_summary_1,
+                session_id
+            ],
+            start_to_close_timeout=timedelta(seconds=120),
         )
 
         status_task = workflow.execute_activity(
             overall_status_agent,
-            # arguments for the agent
-            user_status,
-            user_diary,
-            session_id,
-            
-            start_to_close_timeout=timedelta(seconds=30),
+            args=[
+                user_status,
+                user_diary,
+                session_id
+            ],
+            start_to_close_timeout=timedelta(seconds=120),
         )
 
         background_task = workflow.execute_activity(
             background_agent,
-            # arguments for the agent
-            user_background,
-            user_diary,
-            session_id,
-            
-            start_to_close_timeout=timedelta(seconds=30),
+            args=[
+                user_background,
+                user_diary,
+                session_id,
+            ],
+            start_to_close_timeout=timedelta(seconds=120),
         )
 
         await asyncio.gather(

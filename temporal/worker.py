@@ -10,11 +10,12 @@ from .activities import (
     background_agent,
 )
 
+from .client import get_temporal_client
+
 async def start_worker(
-    temporal_address: str = "localhost:7233",
     task_queue: str = "post-interaction",
 ):
-    client = await Client.connect(temporal_address)
+    client = await get_temporal_client()
 
     worker = Worker(
         client,

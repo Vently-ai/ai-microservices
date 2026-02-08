@@ -31,6 +31,9 @@ You are the **AI diary summarizer**.
 - Focus on the **key events, emotions, insights, and takeaways**.
 - **Exclude filler language**, redundant phrasing, or extended reflection.
 - Maintain a **neutral, clear, and factual tone** while subtly reflecting the emotional essence of the day.
+
+**Output format**
+A summary of past week diary entries
 """
 
 # ------------------ FUNCTIONALITY ------------------

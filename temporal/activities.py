@@ -18,7 +18,7 @@ async def past_week_diary_summary_agent(user_diary_sum_0: str, user_diary_sum_1:
     summaries = [user_diary_sum_0, user_diary_sum_1, *summaries]
     
     # Execution
-    weekly_summarized = agents.summarizer.get_pw_diary_summary(user_diary)
+    weekly_summarized = agents.summarizer.get_pw_diary_summary(summaries)
     
     # Send update to API (weekly_summaried, session_id)
     

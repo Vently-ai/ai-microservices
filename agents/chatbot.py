@@ -97,16 +97,14 @@ def format_system_prompt(states):
 def get_response(history, message, model="gemma3:4b"):
   # Get the model responses
   start_time = time.time()
-  response = chat(model='gemma3:4b', messages=history+[message], think=False)
+  response = chat(model='gemma3:4b', messages=history+[message], think=False, options={
+    "temperature": 0.9
+  })
   end_time = time.time()
   
   # Format the response
   formatted_response, obj = format_response(response.message.content)
   obj['response_time'] = round(end_time - start_time, 2)
   obj['content'] = formatted_response
-  
-  # # Check for ending trigger
-  # if obj['end']:
-    
   
   return obj
