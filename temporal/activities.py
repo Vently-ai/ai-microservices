@@ -1,6 +1,7 @@
 from temporalio import activity
 from typing import List
 import agents
+import database as db
 
 @activity.defn
 async def diary_summary_agent(user_diary: str, session_id: str) -> str:
@@ -45,3 +46,8 @@ async def background_agent(user_background: str, user_diary: str, session_id: st
         pass
 
     return new_user_background
+
+@activity.defn
+async def terminate_session_in_redis(session_id: str):
+    redis_client = db.message_db.get_client()
+    redis_client.delete(db.message_db.format_key(session_id))

@@ -1,21 +1,17 @@
 """
 Scheduling module public API.
-
-Usage:
-    import scheduling
-
-    await scheduling.create_waiting_job(...)
-    await scheduling.start_job_with_diary(...)
 """
 
 from .client import (
     create_waiting_job,
     start_job_with_diary,
+    terminate_job
 )
 
 __all__ = [
     "create_waiting_job",
     "start_job_with_diary",
+    "terminate_job",
 ]
 
 from .worker import start_worker

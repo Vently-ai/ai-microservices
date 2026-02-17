@@ -2,13 +2,13 @@ from fastapi import FastAPI, HTTPException, Query
 from contextlib import asynccontextmanager
 from typing import List, Optional
 from pydantic import BaseModel
-from redis import Redis
 import agents
 import json
 from temporal.worker import start_worker
 import asyncio
 from config import Config
-from temporal import create_waiting_job, start_job_with_diary
+from temporal import create_waiting_job, start_job_with_diary, terminate_job
+import database as db
 
 # ------------------ INIT ------------------
 @asynccontextmanager
@@ -19,12 +19,6 @@ async def lifespan(app: FastAPI):
     # shutdown (optional later)
     
 app = FastAPI(lifespan=lifespan)
-
-message_db = Redis(
-  **Config.REDIS,
-  decode_responses=True # returns strings instead of bytes
-)
-
 
 # ------------------ MODELS ------------------
 class NewMessage(BaseModel):
@@ -45,7 +39,6 @@ class SessionCreate(BaseModel):
 
 # ------------------ ROUTES ------------------
 format_msg = lambda r, p: { "content": p, "role": r }
-format_redis_key = lambda s: f"session:{s}"
 
 @app.post("/sessions", response_model=dict)
 def create_new_session(info: SessionCreate):
@@ -53,10 +46,11 @@ def create_new_session(info: SessionCreate):
   Initialize new session
   """
   info = info.dict()
-  key = format_redis_key(info['session_id'])
+  key = db.message_db.format_key(info['session_id'])
+  redis_client = db.message_db.get_client()
   
   # Check for exist
-  if message_db.exists(key):
+  if redis_client.exists(key):
     raise HTTPException(
       status_code=409,
       detail="Session already exists"
@@ -65,9 +59,9 @@ def create_new_session(info: SessionCreate):
   system_prompt = agents.chatbot.format_system_prompt(info)
   formatted_input = format_msg("system", system_prompt)
   response = agents.chatbot.get_response(history=[], message=formatted_input)
-  message_db.set(key, json.dumps([formatted_input, format_msg("assistant", response["content"])]))
+  redis_client.set(key, json.dumps([formatted_input, format_msg("assistant", response["content"])]))
   
-  print(response)
+  # print(response)
   asyncio.run(create_waiting_job(session_id=info['session_id'],
                      user_background=info['background'],
                      user_status=info['current_state'],
@@ -80,14 +74,16 @@ def add_messages(session_id: str, body: MessageBody):
   """
   Add new messages to a session
   """
-  msg_history = message_db.get(format_redis_key(session_id))
+  key = db.message_db.format_key(session_id)
+  redis_client = db.message_db.get_client()
+  msg_history = redis_client.get(key)
   if not msg_history:
     raise HTTPException(status_code=404, detail="Session not found")
   
   msg_history = json.loads(msg_history)
   formatted_input = format_msg("user", body.content)
   response = agents.chatbot.get_response(history=msg_history, message=formatted_input)
-  message_db.set(format_redis_key(session_id), json.dumps(msg_history+[formatted_input, format_msg("assistant", response["content"])]))
+  redis_client.set(key, json.dumps(msg_history+[formatted_input, format_msg("assistant", response["content"])]))
   
   # Check for ending trigger
   if response['diary']:
@@ -95,6 +91,17 @@ def add_messages(session_id: str, body: MessageBody):
   
   return response
 
+@app.delete("/sessions/{session_id}/", response_model=dict)
+def delete_session(session_id: str):
+  key = db.message_db.format_key(session_id)
+  redis_client = db.message_db.get_client()
+  if not redis_client.exists(key):
+    raise HTTPException(status_code=404, detail="Session not found")
+  
+  redis_client.delete(key)
+  asyncio.run(terminate_job(session_id))
+  
+  return {"status": "ok", "session_id": session_id}
 
 # ------------------ RUN ------------------
 if __name__ == "__main__":

@@ -41,17 +41,6 @@ async def create_waiting_job(
         task_queue=task_queue,
     )   
 
-
-    # await client.start_workflow(
-    #     UserDiaryWorkflow.run,
-    #     session_id=session_id,
-    #     user_background=user_background,
-    #     user_status=user_status,
-    #     user_diary_summary_1=user_diary_summary_1,
-    #     id=session_id,  # session_id == workflow_id
-    #     task_queue=task_queue,
-    # )
-
 async def start_job_with_diary(
     *,
     session_id: str,
@@ -64,3 +53,15 @@ async def start_job_with_diary(
         UserDiaryWorkflow.start_with_diary,
         user_diary,
     )
+
+async def terminate_job(session_id: str):
+    client = await get_temporal_client()
+    handle = client.get_workflow_handle(session_id)
+
+    try:
+        await handle.terminate(
+            reason="Terminated by application request"
+        )
+    except:
+        # workflow already finished or doesn't exist
+        pass
