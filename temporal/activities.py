@@ -18,7 +18,7 @@ async def diary_summary_agent(user_diary: str, session_id: str) -> str:
     # Send update to API (summaried_diary, session_id)
     url = f"{Config.BACKEND['base_url']}/sessions/{session_id}/user/diary"
     requests.post(url, json={
-        "content": user_diary,
+        # "content": user_diary,
         "summarized_content": summaried_diary
     }, headers=headers)
 

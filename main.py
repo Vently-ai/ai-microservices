@@ -91,7 +91,7 @@ def add_messages(session_id: str, body: MessageBody):
   
   return response
 
-@app.delete("/sessions/{session_id}/", response_model=dict)
+@app.delete("/sessions/{session_id}", response_model=dict)
 def delete_session(session_id: str):
   key = db.message_db.format_key(session_id)
   redis_client = db.message_db.get_client()
