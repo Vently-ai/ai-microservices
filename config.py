@@ -49,6 +49,7 @@ class Config:
         "host": _get_str("BACKEND_HOST", "localhost"),
         "port": _get_int("BACKEND_PORT", 8000),
         "secured": _get_bool("BACKEND_SECURED", False),
+        "api_key": _get_str("BACKEND_API_KEY")
     }
 
     BACKEND["base_url"] = (
