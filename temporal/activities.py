@@ -28,7 +28,7 @@ async def diary_summary_agent(user_diary: str, session_id: str) -> str:
 async def past_week_diary_summary_agent(user_diary_sum_0: str, user_diary_sum_1:str, session_id: str) -> str:
     # Ingrediant preparation
     url1 = f"{Config.BACKEND['base_url']}/sessions/{session_id}/user/sum_diary"
-    summaries_response = requests.get(url1, params={"n": 5, "sf": 2}, headers=headers) # Get 5 entries, seek first 2 entries
+    summaries_response = requests.get(url1, params={"n": 7, "sf": 2}, headers=headers) # Get 5 entries, seek first 2 entries
     entries = summaries_response.json().get("entries") or []
 
     summaries = [e for e in entries if e] # Remove any falsy value
