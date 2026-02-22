@@ -54,7 +54,7 @@ async def overall_status_agent(user_status: str, user_diary: str, session_id: st
     if new_user_status != user_status:
         url = f"{Config.BACKEND['base_url']}/sessions/{session_id}/user/state"
         requests.put(url, json={
-            "current_state": weekly_summarized
+            "current_state": new_user_status
         }, headers=headers)
     
     return new_user_status
@@ -68,7 +68,7 @@ async def background_agent(user_background: str, user_diary: str, session_id: st
     if new_user_background != user_background:
         url = f"{Config.BACKEND['base_url']}/sessions/{session_id}/user/state"
         requests.put(url, json={
-            "background": weekly_summarized
+            "background": new_user_background
         }, headers=headers)
 
     return new_user_background
