@@ -15,11 +15,11 @@ async def diary_summary_agent(user_diary: str, session_id: str) -> str:
     # Execution
     summarized_diary = agents.summarizer.get_diary_summary(user_diary)
     
-    # Send update to API (summaried_diary, session_id)
-    url = f"{Config.BACKEND['base_url']}/sessions/{session_id}/user/diary"
+    # Send update to API (summarized_diary, session_id)
+    url = f"{Config.BACKEND['base_url']}/sessions/{session_id}/user/summarized_diary"
     requests.post(url, json={
         # "content": user_diary,
-        "summarized_content": summaried_diary
+        "summarized_content": summarized_diary
     }, headers=headers)
 
     return summarized_diary
@@ -27,7 +27,7 @@ async def diary_summary_agent(user_diary: str, session_id: str) -> str:
 @activity.defn
 async def past_week_diary_summary_agent(user_diary_sum_0: str, user_diary_sum_1:str, session_id: str) -> str:
     # Ingrediant preparation
-    url1 = f"{Config.BACKEND['base_url']}/sessions/{session_id}/user/sum_diary"
+    url1 = f"{Config.BACKEND['base_url']}/sessions/{session_id}/user/summarized_diary"
     summaries_response = requests.get(url1, params={"n": 7, "sf": 2}, headers=headers) # Get 5 entries, seek first 2 entries
     entries = summaries_response.json().get("entries") or []
 
