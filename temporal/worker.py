@@ -8,6 +8,7 @@ from .activities import (
     past_week_diary_summary_agent,
     overall_status_agent,
     background_agent,
+    terminate_session_in_redis
 )
 
 from .client import get_temporal_client
@@ -26,6 +27,7 @@ async def start_worker(
             past_week_diary_summary_agent,
             overall_status_agent,
             background_agent,
+            terminate_session_in_redis
         ],
     )
 
