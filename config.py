@@ -46,13 +46,14 @@ class Config:
     }
 
     BACKEND = {
-        "host": _get_str("BACKEND_HOST", "localhost"),
-        "port": _get_int("BACKEND_PORT", 8000),
-        "secured": _get_bool("BACKEND_SECURED", False),
-        "api_key": _get_str("BACKEND_API_KEY")
+        # "host": _get_str("BACKEND_HOST", "localhost"),
+        # "port": _get_int("BACKEND_PORT", 8000),
+        # "secured": _get_bool("BACKEND_SECURED", False),
+        "base_url": _get_str("BACKEND_BASE_URL"),
+        "api_key": _get_str("BACKEND_API_KEY"),
     }
 
-    BACKEND["base_url"] = (
-        f"http{'s' if BACKEND['secured'] else ''}://"
-        f"{BACKEND['host']}:{BACKEND['port']}"
-    )
+    # BACKEND["base_url"] = (
+    #     f"http{'s' if BACKEND['secured'] else ''}://"
+    #     f"{BACKEND['host']}:{BACKEND['port']}"
+    # )

@@ -27,6 +27,7 @@ async def create_waiting_job(
     user_diary_summary_1: str,
     task_queue: str = "post-interaction",
 ):
+    # print(f"[JOB] Create waiting job with session id {session_id}")
     client = await get_temporal_client()
     
     await client.start_workflow(
@@ -39,13 +40,15 @@ async def create_waiting_job(
         ],
         id=session_id,
         task_queue=task_queue,
-    )   
+    )
+
 
 async def start_job_with_diary(
     *,
     session_id: str,
     user_diary: str,
 ):
+    # print(f"[JOB] Start job with session id {session_id}")
     client = await get_temporal_client()
     handle = client.get_workflow_handle(session_id)
 
@@ -53,6 +56,7 @@ async def start_job_with_diary(
         UserDiaryWorkflow.start_with_diary,
         user_diary,
     )
+
 
 async def terminate_job(session_id: str):
     client = await get_temporal_client()

@@ -33,7 +33,7 @@ class SessionCreate(BaseModel):
     nickname: str
     background: Optional[str] = "N/A"
     current_state: Optional[str] = "N/A"
-    yesterday_summary: Optional[str] = "N/A"
+    previous_session_summary: Optional[str] = "N/A"
     pastweek_summary: Optional[str] = "N/A"
 
 
@@ -41,7 +41,7 @@ class SessionCreate(BaseModel):
 format_msg = lambda r, p: { "content": p, "role": r }
 
 @app.post("/sessions", response_model=dict)
-def create_new_session(info: SessionCreate):
+async def create_new_session(info: SessionCreate):
   """
   Initialize new session
   """
@@ -62,15 +62,15 @@ def create_new_session(info: SessionCreate):
   redis_client.set(key, json.dumps([formatted_input, format_msg("assistant", response["content"])]))
   
   # print(response)
-  asyncio.run(create_waiting_job(session_id=info['session_id'],
+  await create_waiting_job(session_id=info['session_id'],
                      user_background=info['background'],
                      user_status=info['current_state'],
-                     user_diary_summary_1=info['yesterday_summary']))
+                     user_diary_summary_1=info['previous_session_summary'])
   
   return response
 
 @app.post("/sessions/{session_id}/messages", response_model=dict)
-def add_messages(session_id: str, body: MessageBody):
+async def add_messages(session_id: str, body: MessageBody):
   """
   Add new messages to a session
   """
@@ -87,19 +87,19 @@ def add_messages(session_id: str, body: MessageBody):
   
   # Check for ending trigger
   if response['diary']:
-    asyncio.run(start_job_with_diary(session_id=session_id, user_diary=response['diary']))
+    await start_job_with_diary(session_id=session_id, user_diary=response['diary'])
   
   return response
 
 @app.delete("/sessions/{session_id}", response_model=dict)
-def delete_session(session_id: str):
+async def delete_session(session_id: str):
   key = db.message_db.format_key(session_id)
   redis_client = db.message_db.get_client()
   if not redis_client.exists(key):
     raise HTTPException(status_code=404, detail="Session not found")
   
   redis_client.delete(key)
-  asyncio.run(terminate_job(session_id))
+  await terminate_job(session_id)
   
   return {"status": "ok", "session_id": session_id}
 

@@ -50,16 +50,6 @@ class UserDiaryWorkflow:
             )
 
             # Step 2: Parallel agents
-            weekly_task = workflow.execute_activity(
-                past_week_diary_summary_agent,
-                args=[
-                    user_diary_summary_0,
-                    user_diary_summary_1,
-                    session_id
-                ],
-                start_to_close_timeout=timedelta(seconds=120),
-            )
-
             status_task = workflow.execute_activity(
                 overall_status_agent,
                 args=[
@@ -79,12 +69,33 @@ class UserDiaryWorkflow:
                 ],
                 start_to_close_timeout=timedelta(seconds=120),
             )
-
-            await asyncio.gather(
-                weekly_task,
-                status_task,
-                background_task,
+            
+            weekly_task = workflow.execute_activity(
+                past_week_diary_summary_agent,
+                args=[
+                    user_diary_summary_0,
+                    user_diary_summary_1,
+                    session_id
+                ],
+                start_to_close_timeout=timedelta(seconds=120),
             )
+            
+            # tasks = [status_task, background_task]
+            # if (user_diary_summary_1 != "N/A"):
+                # weekly_task = workflow.execute_activity(
+                #     past_week_diary_summary_agent,
+                #     args=[
+                #         user_diary_summary_0,
+                #         user_diary_summary_1,
+                #         session_id
+                #     ],
+                #     start_to_close_timeout=timedelta(seconds=120),
+                # )
+                
+            #     tasks = [weekly_task, *tasks]
+
+            # await asyncio.gather(*tasks)
+            await asyncio.gather(weekly_task, status_task, background_task)
 
             return "WORKFLOW COMPLETED"
         finally:
