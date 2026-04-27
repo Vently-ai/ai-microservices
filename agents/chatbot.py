@@ -3,6 +3,12 @@ from ollama import chat
 import time
 import re
 import json
+from config import Config
+
+import requests
+from requests.exceptions import RequestException
+
+SOCKS_PROXY = ""
 
 SYSTEM_PROMPT = """
 You are an **AI diary companion** designed to help the user ({nickname}) **reflect on their day or a specific moment**, **process emotions**, and **feel genuinely heard** through a warm, guided conversation.
@@ -88,8 +94,66 @@ def clean_blank_lines(text: str, max_blank: int = 1) -> str:
   
   return "\n".join(cleaned_lines)
 
+def normalize_messages(messages):
+    if not messages:
+        return messages
+
+    fixed = []
+
+    for msg in messages:
+        role = msg["role"]
+        content = msg["content"]
+
+        # Convert system -> user (merge into first user)
+        if role == "system":
+            if fixed and fixed[0]["role"] == "user":
+                fixed[0]["content"] = content + "\n\n" + fixed[0]["content"]
+            else:
+                fixed.insert(0, {
+                    "role": "user",
+                    "content": content
+                })
+            continue
+
+        # Merge same-role instead of dropping
+        if fixed and fixed[-1]["role"] == role:
+            fixed[-1]["content"] += "\n" + content
+        else:
+            fixed.append({
+                "role": role,
+                "content": content
+            })
+
+    return fixed
 
 # ------------------ FUNCTIONALITY ------------------
+def remote_chat(history, message, model="google/gemma-3-4b-it"):
+    # print(history + [message])
+    messages = normalize_messages(history + [message])
+
+    payload = {
+        "model": "google/gemma-3-12b-it",
+        "messages": messages,
+        "temperature": 0.9
+    }
+
+    proxies = {
+        "http": SOCKS_PROXY,
+        "https": SOCKS_PROXY,
+    } if SOCKS_PROXY else {}
+
+    response = requests.post(
+        f"{Config.INFERENCE.base_url}/chat/completions",
+        json=payload,
+        proxies=proxies,
+        timeout=60
+    )
+
+    response.raise_for_status()
+    data = response.json()
+
+    return data["choices"][0]["message"]["content"]
+
 def format_response(res: str, return_obj=True):
   res, think_content = extract_tag_content(res, "think")
   res, progress_content = extract_and_remove_progress(res)

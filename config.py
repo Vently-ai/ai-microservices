@@ -52,8 +52,7 @@ class Config:
         "base_url": _get_str("BACKEND_BASE_URL"),
         "api_key": _get_str("BACKEND_API_KEY"),
     }
-
-    # BACKEND["base_url"] = (
-    #     f"http{'s' if BACKEND['secured'] else ''}://"
-    #     f"{BACKEND['host']}:{BACKEND['port']}"
-    # )
+    
+    INFERENCE = {
+        "base_url": _get_str("INFERENCE_BASE_URL")
+    }
